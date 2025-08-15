@@ -81,4 +81,46 @@ public class ProductServlet extends HttpServlet {
             out.write("ERROR: INTERNAL SERVER ERROR");
         }
     }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json");
+        String pathInfo = req.getPathInfo();
+        PrintWriter out = resp.getWriter();
+
+        try {
+            if (pathInfo == null || pathInfo.equals("/")) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.write("ERROR: MISSING ID");
+                return;
+            }
+
+            int id = Integer.parseInt(pathInfo.substring(1));
+            Product existingProduct = db.getProduct(id);
+
+            if (existingProduct == null) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                out.write("ERROR: PRODUCT NOT FOUND");
+                return;
+            }
+
+            BufferedReader reader = req.getReader();
+            Product updatedProduct = gson.fromJson(reader, Product.class);
+            if (updatedProduct == null || updatedProduct.getName() == null || updatedProduct.getPrice() <= 0) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.write("ERROR: INVALID PRODUCT");
+                return;
+            }
+
+            db.updateProduct(updatedProduct);
+        }
+        catch (NumberFormatException | JsonSyntaxException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.write("ERROR: INVALID REQUEST FORMAT");
+        }
+        catch (Exception e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            out.write("ERROR: INTERNAL SERVER ERROR");
+        }
+    }
 }
