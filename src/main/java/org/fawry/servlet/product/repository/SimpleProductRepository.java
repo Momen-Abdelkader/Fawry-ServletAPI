@@ -7,8 +7,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SimpleProductRepository implements ProductRepository {
+    private static volatile ProductRepository instance;
     private final Map<Integer, Product> products = new HashMap<>();
     private static int newProductId = 1;
+
+    private SimpleProductRepository() {
+    }
+
+    public static ProductRepository getInstance() {
+        if (instance == null) {
+            synchronized (SimpleProductRepository.class) {
+                if (instance == null) {
+                    instance = new SimpleProductRepository();
+                }
+            }
+        }
+
+        return instance;
+    }
 
     @Override
     public Collection<Product> getProducts() {
