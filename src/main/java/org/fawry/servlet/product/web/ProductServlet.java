@@ -123,4 +123,38 @@ public class ProductServlet extends HttpServlet {
             out.write("ERROR: INTERNAL SERVER ERROR");
         }
     }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json");
+        String pathInfo = req.getPathInfo();
+        PrintWriter out = resp.getWriter();
+
+        try {
+            if (pathInfo == null || pathInfo.equals("/")) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.write("ERROR: MISSING ID");
+                return;
+            }
+
+            int id = Integer.parseInt(pathInfo.substring(1));
+            Product existingProduct = db.getProduct(id);
+
+            if (existingProduct == null) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                out.write("ERROR: PRODUCT NOT FOUND");
+                return;
+            }
+
+            db.removeProduct(existingProduct.getId());
+        }
+        catch (NumberFormatException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.write("ERROR: INVALID ID FORMAT");
+        }
+        catch (Exception e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            out.write("ERROR: INTERNAL SERVER ERROR");
+        }
+    }
 }
